@@ -1,4 +1,4 @@
-//
+﻿//
 //  Functions.h
 //  Monocular_Measure
 //

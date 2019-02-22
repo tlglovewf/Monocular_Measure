@@ -1,4 +1,4 @@
-#include "Frame.h"
+﻿#include "Frame.h"
 #include "FeatureDetector.h"
 #include <iterator>
 #include <opencv2/imgproc.hpp>
@@ -19,7 +19,7 @@ namespace Monocular {
     
     void Frame::setTargetItems(const TargetItems &items)
     {
-        mTargets = items;
+        mTargets = std::move(items);
     }
     
     FeatureFrame::FeatureFrame(const Mat &img,const GeoPos &pt, FeatureDetector *pDetector):Frame(img,pt)

@@ -1,4 +1,4 @@
-#include "FeatureDetector.h"
+﻿#include "FeatureDetector.h"
 namespace Monocular {
     
     FeatureDetector* FeatureDetector::CreateDetector(Monocular::eFeatureDetectorType type)

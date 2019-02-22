@@ -1,4 +1,4 @@
-//
+﻿//
 //  Frame.h
 //  Monocular_Measure
 //
@@ -115,7 +115,7 @@ namespace Monocular {
         /*
          * 获取描述子
          */
-        virtual Mat getDescriptor()const {assert(NULL);}
+		virtual Mat getDescriptor()const { return Mat(); }
     };
 }
 #endif /*__FRAME_H_H__*/

@@ -1,10 +1,9 @@
 cmake_minimum_required(VERSION 2.8)
 project(Monocular_Measure)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Wall -msse3 -std=c++11 -pthread     -g -march=native -Wno-deprecated-declarations")
+add_definitions(-std=c++11)
 
-find_package(OpenCV 3.2 REQUIRED)
-find_package(Pangolin REQUIRED)
+find_package(OpenCV 3.0 REQUIRED)
 
 include_directories(
 ${PROJECT_SOURCE_DIR}/include
