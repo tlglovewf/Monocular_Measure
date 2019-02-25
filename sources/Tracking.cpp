@@ -13,7 +13,7 @@
 namespace Monocular {
     
     
-    Tracking::Tracking(eFrameType ftype,eMatcherType mtype /*= eHammingDistanceMatcher*/):mFmType(ftype),mState(eNo_Image_Yet),mpCurrentFrame(NULL),mpPreFrame(NULL)
+    Tracking::Tracking(eFrameType ftype,eMatcherType mtype /*= eHammingDistanceMatcher*/):mState(eNo_Image_Yet),mFmType(ftype),mpCurrentFrame(NULL),mpPreFrame(NULL)
     {
         switch (ftype) {
             case eFeatureFrame:

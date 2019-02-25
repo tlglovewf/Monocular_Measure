@@ -1,10 +1,17 @@
 cmake_minimum_required(VERSION 2.8)
+
+#set  findpackage files path
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+
 project(Monocular_Measure)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Wall -msse3 -std=c++11 -pthread     -g -march=native -Wno-deprecated-declarations")
+add_definitions(-std=c++11)
 
-find_package(OpenCV 3.2 REQUIRED)
-find_package(Pangolin REQUIRED)
+find_package(OpenCV 3.0 REQUIRED)
+
+if(NOT OpenCV_FOUND)
+	message(FATAL_ERROR "Caffe Not Found!")
+endif (NOT OpenCV_FOUND)
 
 include_directories(
 ${PROJECT_SOURCE_DIR}/include

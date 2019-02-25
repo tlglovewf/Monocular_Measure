@@ -29,7 +29,7 @@ namespace Monocular {
         /*
          * 获取目标集合
          */
-        TargetItems getTargetItems()const{return mTargets;}
+        TargetItems& getTargetItems() {return mTargets;}
         
         
         /*
@@ -79,6 +79,20 @@ namespace Monocular {
         }
         
         /*
+         * 设置世界变换矩阵
+         */
+        void setWordTransform(const Mat &tcw)
+        {
+            mTcw = std::move(tcw);
+        }
+        
+        
+        /*
+         * 打印信息
+         */
+        virtual void print() ;
+        
+        /*
          * @param type 帧类型
          * @return     帧对象
          */
@@ -86,6 +100,7 @@ namespace Monocular {
     protected:
         GeoPos          mPos;//坐标(经纬度）
         Mat             mImg;
+        Mat             mTcw;//变换矩阵
         KeyPointVector  mKeyPoints;
         TargetItems     mTargets;
     };
@@ -115,7 +130,7 @@ namespace Monocular {
         /*
          * 获取描述子
          */
-        virtual Mat getDescriptor()const {assert(NULL);}
+		virtual Mat getDescriptor()const { return Mat(); }
     };
 }
 #endif /*__FRAME_H_H__*/

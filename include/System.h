@@ -7,10 +7,11 @@
 #ifndef __SYSTEM_H_H__
 #define __SYSTEM_H_H__
 #include "mtypes.h"
-
+#include <list>
 namespace Monocular {
     class Tracking;
     class PoseEstimation;
+    class Frame;
     //跟踪模式
     enum eTrackingMode
     {
@@ -46,9 +47,36 @@ namespace Monocular {
          * 状态重置
          */
         void reset();
+        
+        /*
+         * 优化
+         */
+        void optimize()
+        {
+            // add more..
+        }
+        
+        /*
+         * 输出结果
+         */
+        void printResult();
     protected:
-        Tracking            *mpTracker;
-        PoseEstimation      *mpEstimation;
+        /*
+         * 加入到帧列表中
+         */
+        void addList(Frame *frame);
+        
+        /*
+         * 重置列表
+         */
+        void resetList();
+    protected:
+        typedef std::list<Frame*>        FrameList;
+        typedef FrameList::iterator      FrameListIter;
+        
+        Tracking                        *mpTracker;
+        PoseEstimation                  *mpEstimation;
+        FrameList                       mFrameList;
     };
 }
 

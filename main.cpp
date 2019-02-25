@@ -13,7 +13,7 @@ int main(void)
     cam.principal_point  =  Point2d( 2.0521093136805948e+03,1.0898609600712157e+03);//光心坐标
     cam.focal_length     =  1.8144486313396042e+03;                                 //焦距
     
-    Monocular::System sys(cam,Monocular::OpticalFlowMode);
+    Monocular::System sys(cam,Monocular::eFeaturesMode);
     
     const size_t Len = 2;
     Mat imgs[Len] = {imread("../../data/4014.jpg"),imread("../../data/4015.jpg")};
@@ -34,7 +34,7 @@ int main(void)
             sys.reset();
         }
     }
-    
+    sys.printResult();
     return 0;
 }
 

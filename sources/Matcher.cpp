@@ -73,7 +73,7 @@ namespace Monocular
     
     
     void Matcher::getMatchVector(PtVector &prepts, PtVector &curpts)
-    {
+    {//直接交换数据
         prepts.swap(mPrePts);
         curpts.swap(mCurPts);
     }

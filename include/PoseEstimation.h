@@ -40,9 +40,9 @@ namespace Monocular {
          * @param prepts        前帧中匹配对中的像素点集
          * @param curpts        后帧中匹配对中的像素点集
          * @param scale         真实尺度(默认表示没有真实尺度,则计算两帧经纬度距离)
-         * @return              恢复点坐标(世界坐标 经纬度)
+         * @return              世界变换矩阵
          */
-        void estimate(const Frame *preFrame,const Frame *curFrame,const PtVector &prepts,const PtVector &curpts,float realscale = -1.0);
+        Mat estimate(const Frame *preFrame,const Frame *curFrame,const PtVector &prepts,const PtVector &curpts,float realscale = -1.0);
         
         /*
          * 基于基础矩阵的2d-2d状态恢复
@@ -150,8 +150,10 @@ namespace Monocular {
         void triangulationLinearLSTImpl(const Point2d &pt1,const Point2d &pt2,const Mat &camPrj1,const Mat &camPrj2,Mat &pt_4d);
         
         
-        
-        GeoPos calcWorldPos(const GeoPos &preGps, const GeoPos &curGps,const Point3d &target);
+        /*
+         * 计算
+         */
+        GeoPos calcWorldPos(const GeoPos &preGps, const GeoPos &curGps,const Point3d &target,Mat &tcw);
         
         //add more
         

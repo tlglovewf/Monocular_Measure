@@ -2,6 +2,7 @@
 #include "FeatureDetector.h"
 #include <iterator>
 #include <opencv2/imgproc.hpp>
+#include "Functions.h"
 namespace Monocular {
     
     Frame* Frame::CreateFrame(Monocular::eFrameType type,const Mat &img,const GeoPos &pt,FeatureDetector *pFeature/* = NULL*/)
@@ -19,7 +20,28 @@ namespace Monocular {
     
     void Frame::setTargetItems(const TargetItems &items)
     {
-        mTargets = items;
+        mTargets = std::move(items);
+    }
+    
+    void Frame::print()
+    {
+        static int index = 0;
+        
+        PRINTLABEL("Frame index : ", index);
+        
+        PRINTGEOSTR("Frame pos : ", mPos);
+        
+        PRINTLABEL("Target List : ", mTargets.size());
+        
+        for( auto it : mTargets )
+        {
+            PRINTLABEL("Type: ", it._id);
+            PRINTLABEL("Pixel_x:", it._center.x);
+            PRINTLABEL("Pixel_y:", it._center.y);
+            PRINTGEOSTR("Result_pos:", it._pos);
+            PRINTGEOSTR("Real_pos  :", it._realpos);
+            PRINTLABEL("accuracy error : ", Functions::ComputeDistance(it._pos, it._realpos));
+        }
     }
     
     FeatureFrame::FeatureFrame(const Mat &img,const GeoPos &pt, FeatureDetector *pDetector):Frame(img,pt)

@@ -1,6 +1,8 @@
 #include "System.h"
 #include "Tracking.h"
+#include "Frame.h"
 #include "PoseEstimation.h"
+
 namespace Monocular {
     System::System(const Camera &cam,eTrackingMode mode)
     {
@@ -10,6 +12,7 @@ namespace Monocular {
     
     System::~System()
     {
+        resetList();
         DESTROYOBJECT(mpTracker);
         DESTROYOBJECT(mpEstimation);
     }
@@ -69,10 +72,40 @@ namespace Monocular {
                 assert(mpEstimation);
                 PtVector prepts,curpts;
                 mpTracker->getMatchVector(prepts,curpts);
-                mpEstimation->estimate(mpTracker->getFrame(ePreFrame), mpTracker->getFrame(eCurFrame), prepts, curpts);
+                Frame *pPreFrame = mpTracker->getFrame(ePreFrame);
+                Mat tcw =  mpEstimation->estimate( pPreFrame, mpTracker->getFrame(eCurFrame), prepts, curpts);
+                pPreFrame->setWordTransform(std::move(tcw));
+                
+                //将有计算结果的帧添加到帧列表中
+                addList(pPreFrame);
             }
             
             //add more ..
+        }
+    }
+    
+    void System::addList(Frame *frame)
+    {
+        assert(frame);
+        frame->addRef();
+        mFrameList.emplace_back(frame);
+    }
+    
+    void System::resetList()
+    {
+        for( auto it : mFrameList )
+        {
+            assert(it);
+            it->release();
+        }
+    }
+    
+    void System::printResult()
+    {
+        for(auto it : mFrameList)
+        {
+            assert(it);
+            it->print();
         }
     }
     
@@ -80,4 +113,6 @@ namespace Monocular {
     {
         if(NULL != mpTracker)mpTracker->reset();
     }
+    
+
 }

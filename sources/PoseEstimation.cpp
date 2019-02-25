@@ -58,8 +58,6 @@ namespace Monocular {
                                 t.at<double>(1,0) * t.at<double>(1,0)+
                                 t.at<double>(2,0) * t.at<double>(2,0));
         
-//        double len = Functions::GetLength(output)  * d;
-        
         output = output * d;
     }
     
@@ -120,7 +118,7 @@ namespace Monocular {
             c.emplace_back(epiline[2]);
         }
     }
-    //计算y值
+    //y = (-a*x - c) / b   计算y值
     inline double computeY(float x, float a, float b, float c)
     {
         assert( fabs(b) > 1e-6);
@@ -179,7 +177,7 @@ namespace Monocular {
         return Point2f(WRONGVALUE,WRONGVALUE);
     }
     
-    GeoPos PoseEstimation::calcWorldPos(const GeoPos &preGps, const GeoPos &curGps,const Point3d &target)
+    GeoPos PoseEstimation::calcWorldPos(const GeoPos &preGps, const GeoPos &curGps,const Point3d &target,Mat &tcw)
     {
         cv::Point3d pt1 = Functions::ComputeXYZFromGPS(preGps.x, preGps.y);
         cv::Point3d pt2 = Functions::ComputeXYZFromGPS(curGps.x, curGps.y);
@@ -192,11 +190,11 @@ namespace Monocular {
         Functions::Normalize(zAixs);         //单位化
         cv::Point3d yAixs = pt1;             //up方向
         Functions::Normalize(yAixs);         //单位化
-        Mat R = Functions::ComputeWorldTransMatrix(zAixs, yAixs, pt1);//获取世界变换矩阵
+        tcw = Functions::ComputeWorldTransMatrix(zAixs, yAixs, pt1);//获取世界变换矩阵
         
         Mat pos = (Mat_<double>(4,1) << target.x,target.y,target.z,1) ;
         
-        Mat rst = R * pos;
+        Mat rst = tcw * pos;
         
         cv::Point3d rstpt(rst.at<double>(0,0)/rst.at<double>(3,0),
                           rst.at<double>(1,0)/rst.at<double>(3,0),
@@ -205,7 +203,7 @@ namespace Monocular {
        return Functions::ComputeGPSFromXYZ(rstpt);
     }
     
-    void PoseEstimation::estimate(const Frame *preFrame,const Frame *curFrame,const PtVector &prepts,const PtVector &curpts,float realscale/* = -1.0*/)
+    Mat PoseEstimation::estimate(const Frame *preFrame,const Frame *curFrame,const PtVector &prepts,const PtVector &curpts,float realscale/* = -1.0*/)
     {
         assert(preFrame);
         assert(curFrame);
@@ -221,58 +219,44 @@ namespace Monocular {
         float score = 0.0;
         Mat fdMat = findFundamentalMat(prepts,curpts,score);
         
-        
         if(realscale < 0.0)
         {//若尺度未输入 或 有误 取两帧经纬度距离
             realscale = Functions::ComputeDistance(preFrame->getPosition(), curFrame->getPosition());
         }
         
-        for( TargetItem target : preFrame->getTargetItems())
+        TargetItems &preItems = const_cast<Frame*>(preFrame)->getTargetItems();
+        TargetItems &curItems = const_cast<Frame*>(curFrame)->getTargetItems();
+        
+        for( TargetItem &target : preItems)
         {
-            
             //极线a,b,c
             float a;
             float b;
             float c;
             
+            //计算极线
             calcEpiline(fdMat, target._center, a, b, c);
             
             if(!target.isValid())
             {//无效 则表示目标绝对坐标没有被恢复 或 计算的经纬度有误？
-                Point2f corrPt = epilineSearch(curFrame->getTargetItems(), target, a, b, c);
+                Point2f corrPt = epilineSearch(curItems, target, a, b, c);
                 if(CHECKVALUE(corrPt))
                 {//找到同名点
                     Point3d output;
                     triangulation(target._center, corrPt, realscale, R, t, output);
                     output.y = -output.y;
+                    Mat tcw;
+                    GeoPos pos = calcWorldPos(preFrame->getPosition(), curFrame->getPosition(), output,tcw);
                     
-                    GeoPos pos = calcWorldPos(preFrame->getPosition(), curFrame->getPosition(), output);
-       
-#ifdef NEEDPRINTDEBUGFINO
-                    PRINTGEOSTR("calc pos is: ",pos);
-#endif
-                    
-#ifdef TESTOUTPUT
-                    double distance = Functions::ComputeDistance(target._realpos,pos);
-                    PRINTLABEL("accuracy error : ",distance);
-#endif
                     target._pos = pos;
+                    
+                    return tcw;
                 }
             }
+            return Mat();
         }
 
-        
-        
-//        calc
-//        for( )
-        
-//        //寻找同名点
-//        Point2f  corrPt = epilineSearch(curTargets, target, a, b, c);
-//        
-//        if( corrPt.x > 0)
-//        {//正表示寻找到同名点
-//            
-//        }
+        return Mat();
     }
     
     

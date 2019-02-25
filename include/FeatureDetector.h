@@ -1,4 +1,4 @@
-//
+﻿//
 //  FeatureDetector.h
 //  Monocular_Measure
 //
