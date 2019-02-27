@@ -246,6 +246,13 @@ namespace Monocular {
 
                 //计算极线
                 calcEpiline(fdMat, target._center, a, b, c);
+                
+#if TESTOUTPUT
+                const_cast<Frame*>(preFrame)->drawLine(a, b, c);
+                std::cout << "size :" << prepts.size() << std::endl;
+                const_cast<Frame*>(preFrame)->drawMatch(prepts, curpts);
+#endif
+                
                 TargetItem sm_target = epilineSearch(curItems, target, a, b, c);
                 const Point2f &corrPt = sm_target._center;
                 if(CHECKVALUE(corrPt))// > 0  认为是有效值
@@ -290,6 +297,12 @@ namespace Monocular {
 #endif
                     
                     return tcw;
+                }
+                else
+                {
+#if NEEDWRITEFILE
+                    pSer->writeFormat("Could not found target ",target._id);
+#endif
                 }
             }
             return Mat();

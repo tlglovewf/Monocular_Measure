@@ -65,22 +65,7 @@ namespace Monocular
                 mCurPts.emplace_back( curkey[tmpmatches[i].trainIdx].pt);
             }
         }
-        
-//        Size winSize = Size( 5, 5 );
-//        Size zeroZone = Size( -1, -1 );
-//        TermCriteria criteria = TermCriteria(
-//                                             CV_TERMCRIT_EPS + CV_TERMCRIT_ITER,
-//                                             40,         //maxCount=40
-//                                             0.001 );    //epsilon=0.001
-//
-//
-        /// 计算亚像素级
-//          Mat tmp ;
-//        cvtColor(pPreFrame->getImg(), tmp, CV_BGR2GRAY);
-//        cornerSubPix( tmp, mPrePts, winSize, zeroZone, criteria );
-        
-//        cvtColor(pCurFrame->getImg(), tmp, CV_BGR2GRAY);
-//        cornerSubPix( tmp, mCurPts, winSize, zeroZone, criteria );
+    
     }
     
     
@@ -97,16 +82,22 @@ namespace Monocular
         assert(mPrePts.empty());
         
         std::vector<uchar> status;
-//        KeyPoint::convert(pPreFrame->getKeyPoints(), mPrePts);
-
         /*
          * Shi-Tomasi算子
          *
          */
         const Mat &preimg = pPreFrame->getImg();
         
-        int rows = (preimg.rows + preimg.cols) >> 2;
-        goodFeaturesToTrack(preimg, mPrePts, rows, 0.01, 10, Mat(),10,false);
+        if(!pPreFrame->getKeyPoints().empty())
+        {//有提取特征点就直接转换,无就进行追踪
+            KeyPoint::convert(pPreFrame->getKeyPoints(), mPrePts);
+        }
+        else
+        {
+            int rows = (preimg.rows + preimg.cols) >> 2;
+            goodFeaturesToTrack(preimg, mPrePts, rows, 0.01, 10, Mat(),10,false);
+        }
+    
         /// 角点位置精准化参数
         Size winSize = Size( 5, 5 );
         Size flWinSize = Size(18,18);

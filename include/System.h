@@ -39,7 +39,7 @@ namespace Monocular {
         /*
          * 目标检测
          */
-        TargetItems objectDetect(const Mat &img);
+        TargetItems objectDetect(const Mat &img,int sample);
         
         /*
          * 特征点追踪

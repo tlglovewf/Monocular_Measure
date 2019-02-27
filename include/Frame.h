@@ -98,7 +98,20 @@ namespace Monocular {
          */
         virtual void display();
         
+        /*
+         * 绘制目标
+         */
         void drawTargetItem(const TargetItem &item);
+        
+        /*
+         * 绘制直线
+         */
+        void drawLine(float a,float b, float c);
+        
+        /*
+         * 绘制匹配线
+         */
+        void drawMatch(const PtVector &cur,const PtVector &oth);
         /////////////////////////for debug/////////////////////////
         
       

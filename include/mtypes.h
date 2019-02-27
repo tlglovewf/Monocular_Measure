@@ -14,7 +14,7 @@
 namespace Monocular {
     
     /******** macro define *********/
-    #define SAVEPATH           "/Volumes/mac/Data/monocular"   //输出路径
+    #define SAVEPATH           "../../result"   //输出路径
     
     #define DESTROYOBJECT(obj)    if(NULL != obj){obj->release();obj = NULL;}
     #define CHECKVALUE(v)         ((v).x > 0)
@@ -65,6 +65,7 @@ namespace Monocular {
         GeoPos         _realpos;    //真实坐标 仅测试有用
         float          a,b,c;       //极线a,b,c
 #endif
+        TargetItem(){}
         TargetItem(int id, const Point2f &center, const Rect2f &box):
         _id(id),_center(center),_box(box),_pos(MAXLON+1)
         {

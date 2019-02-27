@@ -1,4 +1,4 @@
-﻿//
+//
 //  FeatureDetector.h
 //  Monocular_Measure
 //
@@ -71,7 +71,7 @@ namespace Monocular {
          */
         virtual void detect(const Mat &img, KeyPointVector &keypoints)
         {
-            int fast_threshold = 20;
+            int fast_threshold = 10;
             bool nonmaxSuppression = true;
             FAST(img, keypoints, fast_threshold, nonmaxSuppression);
         }

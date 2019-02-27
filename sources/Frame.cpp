@@ -49,8 +49,25 @@ namespace Monocular {
     
     void Frame::drawTargetItem(const TargetItem &item)
     {
-        rectangle(mImg,item._box,Scalar(0,255,0),3);
+        rectangle(mImg,item._box,Scalar(0,0,0),3,LINE_AA);
         circle(mImg, item._center, 5, Scalar(0,0,255),FILLED);
+    }
+    
+    void Frame::drawMatch(const PtVector &cur,const PtVector &oth)
+    {
+        if( cur.empty() || oth.empty() || oth.size() != cur.size())
+            return;
+        
+        for(size_t i = 0; i < cur.size();++i)
+        {
+            line(mImg, cur[i], oth[i], Scalar(0,0,0,3),2,LINE_AA);
+        }
+    }
+    void Frame::drawLine(float a, float b, float c)
+    {
+        double y1 = -c / b;
+        double y2 = -(c + a * mImg.cols) / b;
+        line(mImg, Point(0, y1), Point(mImg.cols, y2), Scalar(0,0,0),2,LINE_AA);
     }
     
     void Frame::display()
@@ -70,9 +87,7 @@ namespace Monocular {
 #if TESTOUTPUT
                 Scalar color(100,100,0);
                 //绘制出极线    上面的验证点应该正好在绘制出的极线上
-                double y1 = -item.c / item.b;
-                double y2 = -(item.c + item.a * outimg.cols) / item.b;
-                line(outimg, Point(0, y1), Point(outimg.cols, y2), color,2,LINE_AA);
+                drawLine(item.a, item.b, item.c);
 #endif
             }
            
@@ -83,7 +98,8 @@ namespace Monocular {
             static int index = 0; //名称计数
             char outpath[1024] = {0};
             
-            sprintf(outpath, "/%s/result_%d.png",SAVEPATH,index++);
+            sprintf(outpath, "%s/result_%d.png",SAVEPATH,index++);
+            
             imwrite(outpath, outimg);
 //            waitKey(0);
         }
@@ -108,17 +124,13 @@ namespace Monocular {
     
     OpticalFlowFrame::OpticalFlowFrame(const Mat &img,const GeoPos &pt,FeatureDetector *pDetector):Frame(img,pt)
     {
-//        assert(NULL != pDetector);
-//        pDetector->addRef();
-        
-//        Mat imggray;
-        
         cvtColor(img, mImg, CV_BGR2GRAY);
         
-        
-        
-//        pDetector->detect(imggray, mKeyPoints);
-//
+//        assert(NULL != pDetector);
+//        pDetector->addRef();
+//        
+//        pDetector->detect(mImg, mKeyPoints);
+//        
 //        pDetector->release();
     }
     

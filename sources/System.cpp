@@ -25,20 +25,34 @@ namespace Monocular {
         return (rect.height > MINOBJECTSIZE) && (rect.width > MINOBJECTSIZE);
     }
     
-    TargetItems System::objectDetect(const cv::Mat &img)
+    TargetItems System::objectDetect(const cv::Mat &img,int sample)
     {
         //add more ...
         static int index = 0;
         TargetItems items;
         const float sz = 50.0f;
-        if( index++ < 1 )
+        if( index++ % 2 == 0 )
         {
-            Point2f pt(2756,866);
-            TargetItem item{0,pt,Rect2f(pt.x - sz,pt.y - sz,sz * 2,sz * 2)};
-            
+            Point2f pt;
+            TargetItem item;
+            if(sample)
+            {
+                pt = Point2f(2756,866);
+               item = TargetItem {0,pt,Rect2f(pt.x - sz,pt.y - sz,sz * 2,sz * 2)};
 #if TESTOUTPUT
-            item._realpos = GeoPos(114.40350395, 30.60123760);
+              item._realpos = GeoPos(114.40350395, 30.60123760);
 #endif
+            }
+            else
+            {
+                Rect2f rect = Rect2f(2307,635,93,123);
+                pt = Point2f (rect.x + rect.width / 2,rect.y + rect.height / 2);
+                item = TargetItem {0,pt,rect};
+#if TESTOUTPUT
+                item._realpos = GeoPos(121.46771743, 31.21026780);
+#endif
+            }
+
             if(checkRect(item._box))
                 items.emplace_back(item);
             else
@@ -46,12 +60,19 @@ namespace Monocular {
         }
         else
         {
-            Point2f pt(2907,827);
-            TargetItem item{0,pt,Rect2f(pt.x - sz,pt.y - sz,sz * 2,sz * 2)};
-            
-#if TESTOUTPUT
-            item._realpos = GeoPos(114.40350395, 30.60123760);
-#endif
+            Point2f pt;
+            TargetItem item;
+            if(sample)
+            {
+                pt = Point2f(2907,827);
+                item = TargetItem {0,pt,Rect2f(pt.x - sz,pt.y - sz,sz * 2,sz * 2)};
+            }
+            else
+            {
+                Rect2f rect = Rect2f(2447,537,123,156);
+                pt = Point2f (rect.x + rect.width / 2,rect.y + rect.height / 2);
+                item = TargetItem{0,pt,rect};
+            }
              if(checkRect(item._box))
                  items.emplace_back(item);
             else
