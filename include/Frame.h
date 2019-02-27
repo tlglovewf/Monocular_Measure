@@ -97,8 +97,11 @@ namespace Monocular {
          * 显示
          */
         virtual void display();
+        
+        void drawTargetItem(const TargetItem &item);
         /////////////////////////for debug/////////////////////////
         
+      
         
         /*
          * @param type 帧类型

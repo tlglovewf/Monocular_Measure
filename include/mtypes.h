@@ -14,10 +14,12 @@
 namespace Monocular {
     
     /******** macro define *********/
+    #define SAVEPATH           "/Volumes/mac/Data/monocular"   //输出路径
+    
     #define DESTROYOBJECT(obj)    if(NULL != obj){obj->release();obj = NULL;}
     #define CHECKVALUE(v)         ((v).x > 0)
     
-    #define TESTOUTPUT          1 //测试结果
+    #define TESTOUTPUT          1 //结果
     #define NEEDWRITEFILE       1 //允许输出到文件
     
     #define NEEDPRINTDEBUGFINO _DEBUG        //是否打印输出信息
@@ -29,9 +31,6 @@ namespace Monocular {
     #define PRINTGEO(g)          (g).y << "," << (g).x
     #define PRINTGEOSTR(label,g) DEBUGINFOBG << DEBUGPRECI(20) << (label) << PRINTGEO(g) << DEBUGINFOED;
     #define PRINTLABEL(label,v)  DEBUGINFOBG << DEBUGPRECI(20) << (label) << (v) << DEBUGINFOED;
-    
-    
-    #define OUTPUTPATH           "/Volumes/mac/Data/measure"   //输出路径
     
     #define WRONGVALUE       -1         //错误值
     #define MAXLON           180.0      //经度最大值

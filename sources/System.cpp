@@ -103,14 +103,17 @@ namespace Monocular {
     
     void System::printResult()
     {
+        
+#if TESTOUTPUT
         for(auto it : mFrameList)
         {
             assert(it);
 //            it->print();//打印每帧的数据
             it->display();
         }
-       
-#ifdef NEEDPRINTDEBUGFINO
+#endif
+        
+#ifdef NEEDWRITEFILE
         assert(mpSerialization);
         
         std::ifstream file;

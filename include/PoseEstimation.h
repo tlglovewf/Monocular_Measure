@@ -123,7 +123,7 @@ namespace Monocular {
          * @a,b,c   极线 ax+by+c = 0
          * @return  匹配的点
          */
-        Point2f epilineSearch(const TargetItems &targets,const TargetItem &item,float a,float b, float c);
+        TargetItem epilineSearch(const TargetItems &targets,const TargetItem &item,float a,float b, float c);
         
     protected:
         //根据orb-slam 内容 应该是要根据计算基础和单应矩阵的模型评分,然后最后进行选择最优进行状态恢复,此处暂留,待后续优化

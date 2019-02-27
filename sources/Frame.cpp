@@ -47,6 +47,12 @@ namespace Monocular {
         }
     }
     
+    void Frame::drawTargetItem(const TargetItem &item)
+    {
+        rectangle(mImg,item._box,Scalar(0,255,0),3);
+        circle(mImg, item._center, 5, Scalar(0,0,255),FILLED);
+    }
+    
     void Frame::display()
     {
         if(!mImg.empty())
@@ -76,9 +82,10 @@ namespace Monocular {
             //imshow(winNm, outimg);
             static int index = 0; //名称计数
             char outpath[1024] = {0};
-            sprintf(outpath, "%s/%d.png",OUTPUTPATH,index++);
+            
+            sprintf(outpath, "/%s/result_%d.png",SAVEPATH,index++);
             imwrite(outpath, outimg);
-            waitKey(0);
+//            waitKey(0);
         }
     }
     

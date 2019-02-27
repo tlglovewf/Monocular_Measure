@@ -160,7 +160,7 @@ namespace Monocular {
     }
     
     
-    Point2f PoseEstimation::epilineSearch(const TargetItems &targets,const TargetItem &item,float a,float b, float c)
+    TargetItem PoseEstimation::epilineSearch(const TargetItems &targets,const TargetItem &item,float a,float b, float c)
     {
         Point2f bg = item._center;
         Point2f ed(item._center.x + EPILINESEARCHLEN,0);
@@ -171,11 +171,11 @@ namespace Monocular {
             {//检测到类型相同的 才进行下一步判断
                 if(Functions::IsIntersect(bg, ed, target._box ))
                 {//相交则认为是同一个物体,并不再进行下一步判断
-                    return target._center;
+                    return target;
                 }
             }
         }
-        return Point2f(WRONGVALUE,WRONGVALUE);
+        return {0,Point2f(WRONGVALUE,WRONGVALUE),Rect2f()};
     }
     
     GeoPos PoseEstimation::calcWorldPos(const GeoPos &preGps, const GeoPos &curGps,const Point3d &target,Mat &tcw)
@@ -219,8 +219,8 @@ namespace Monocular {
         pSer->prompt("-----------------------------------------------");
         pSer->writeFormat("preFrame Position", preFrame->getPosition());
         pSer->writeFormat("curFrame Position", curFrame->getPosition());
-        pSer->writeFormat("R", R);
-        pSer->writeFormat("t", t);
+        pSer->writeFormat("R:", R);
+        pSer->writeFormat("t:", t);
         
 #endif
         float score = 0.0;
@@ -246,7 +246,8 @@ namespace Monocular {
 
                 //计算极线
                 calcEpiline(fdMat, target._center, a, b, c);
-                Point2f corrPt = epilineSearch(curItems, target, a, b, c);
+                TargetItem sm_target = epilineSearch(curItems, target, a, b, c);
+                const Point2f &corrPt = sm_target._center;
                 if(CHECKVALUE(corrPt))// > 0  认为是有效值
                 {//找到同名点
                     Point3d output;
@@ -256,15 +257,13 @@ namespace Monocular {
                     GeoPos pos = calcWorldPos(preFrame->getPosition(), curFrame->getPosition(), output,tcw);
                     
                     target._pos = pos;
-
-                    
                     
 #if NEEDWRITEFILE
                     pSer->prompt("target matching");
                     pSer->writeFormat("targetID", target._id);
                     pSer->writeFormat("first  center", target._center);
                     pSer->writeFormat("second center", corrPt);
-                    
+                   
                     pSer->prompt("epiline");
                     pSer->writeFormat("a", a);
                     pSer->writeFormat("b", b);
@@ -276,6 +275,8 @@ namespace Monocular {
                     target.a = a;
                     target.b = b;
                     target.c = c;
+                    
+                    const_cast<Frame*>(preFrame)->drawTargetItem( sm_target );//绘制匹配到对象的包围盒
                     
                     if(CHECKVALUE(target._realpos))//真实值有效
                     {
