@@ -1,4 +1,4 @@
-﻿//
+//
 //  mtypes.h
 //  Monocular_Measure
 //
@@ -18,6 +18,7 @@ namespace Monocular {
     #define CHECKVALUE(v)         ((v).x > 0)
     
     #define TESTOUTPUT          1 //测试结果
+    #define NEEDWRITEFILE       1 //允许输出到文件
     
     #define NEEDPRINTDEBUGFINO _DEBUG        //是否打印输出信息
     
@@ -61,11 +62,18 @@ namespace Monocular {
         Point2f        _center;     //像素坐标
         Rect2f         _box;        //包围盒
         GeoPos         _pos;        //绝对世界坐标
-#ifdef TESTOUTPUT
+#if TESTOUTPUT
         GeoPos         _realpos;    //真实坐标 仅测试有用
+        float          a,b,c;       //极线a,b,c
 #endif
         TargetItem(int id, const Point2f &center, const Rect2f &box):
-        _id(id),_center(center),_box(box),_pos(MAXLON+1){}
+        _id(id),_center(center),_box(box),_pos(MAXLON+1)
+        {
+#if TESTOUTPUT
+            _realpos = GeoPos(-1,-1);    //真实坐标 仅测试有用
+            a = b = c = 0.0;       //极线a,b,c
+#endif
+        }
         
         inline bool isValid()const
         {

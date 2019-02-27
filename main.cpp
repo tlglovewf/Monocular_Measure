@@ -1,4 +1,4 @@
-﻿#include <iostream>
+#include <iostream>
 #include <System.h>
 using namespace std;
 
@@ -13,7 +13,7 @@ int main(void)
     cam.principal_point  =  Point2d( 2.0521093136805948e+03,1.0898609600712157e+03);//光心坐标
     cam.focal_length     =  1.8144486313396042e+03;                                 //焦距
     
-    Monocular::System sys(cam,Monocular::eFeaturesMode);
+    Monocular::System sys(cam,Monocular::eOpticalFlowMode,std::string(OUTPUTPATH) +  std::string("result.txt") );
     
     const size_t Len = 2;
     Mat imgs[Len] = {imread("../../data/4014.jpg"),imread("../../data/4015.jpg")};

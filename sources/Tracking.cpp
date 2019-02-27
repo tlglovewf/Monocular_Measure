@@ -53,10 +53,6 @@ namespace Monocular {
                 mpCurrentFrame = Frame::CreateFrame(mFmType, img, geopt,mpFeatureDetector);
                 mpCurrentFrame->setTargetItems(items);
                 mState = eOk;
-                
-#ifdef NEEDPRINTDEBUGFINO
-                PRINTGEOSTR("pre frame pos : ",geopt);
-#endif
             }
             else
             {//存在需要的跟踪
@@ -71,10 +67,6 @@ namespace Monocular {
                 
                 mpCurrentFrame = Frame::CreateFrame(mFmType, img, geopt,mpFeatureDetector);
                 mpCurrentFrame->setTargetItems(items);
-                
-#ifdef NEEDPRINTDEBUGFINO
-                PRINTGEOSTR("cur frame pos : ",geopt);
-#endif
             }
             return track();
         }

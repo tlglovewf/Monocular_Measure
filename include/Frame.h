@@ -1,4 +1,4 @@
-﻿//
+//
 //  Frame.h
 //  Monocular_Measure
 //
@@ -87,10 +87,18 @@ namespace Monocular {
         }
         
         
+        /////////////////////////for debug/////////////////////////
         /*
          * 打印信息
          */
         virtual void print() ;
+        
+        /*
+         * 显示
+         */
+        virtual void display();
+        /////////////////////////for debug/////////////////////////
+        
         
         /*
          * @param type 帧类型

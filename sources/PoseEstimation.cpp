@@ -1,7 +1,8 @@
-﻿#include "PoseEstimation.h"
+#include "PoseEstimation.h"
 #include "CvHeader.h"
 #include "Functions.h"
 #include "Frame.h"
+#include "Serialization.h"
 namespace Monocular {
     
     
@@ -86,7 +87,7 @@ namespace Monocular {
     Mat PoseEstimation::findFundamentalMat(const PtVector &pt1,const PtVector &pt2,float &score)
     {
         //此处暂时直接调用cv接口  并未对score进行计算 待后续优化
-        return cv::findFundamentalMat( pt1, pt2, CV_FM_8POINT);
+        return cv::findFundamentalMat( pt1, pt2, CV_RANSAC);
     }
     
     void PoseEstimation::calcEpiline(const Mat &fdMat,const Point2f &piexl, float &a, float &b, float &c)
@@ -203,19 +204,25 @@ namespace Monocular {
        return Functions::ComputeGPSFromXYZ(rstpt);
     }
     
-    Mat PoseEstimation::estimate(const Frame *preFrame,const Frame *curFrame,const PtVector &prepts,const PtVector &curpts,float realscale/* = -1.0*/)
+    Mat PoseEstimation::estimate(Frame *preFrame,Frame *curFrame,const PtVector &prepts,const PtVector &curpts,Serialization *pSer,float realscale/* = -1.0*/)
     {
         assert(preFrame);
         assert(curFrame);
+        
         Mat R,t;
         //这里暂时直接用本质矩阵进行推导相机R t 后续看情况优化
         estimateF_2d2d(prepts, curpts, R, t);
         
-#ifdef NEEDPRINTDEBUGFINO
-        PRINTLABEL("R : ", R );
-        PRINTLABEL("t : ", t );
-#endif
+#if NEEDWRITEFILE
         
+        assert(pSer);
+        pSer->prompt("-----------------------------------------------");
+        pSer->writeFormat("preFrame Position", preFrame->getPosition());
+        pSer->writeFormat("curFrame Position", curFrame->getPosition());
+        pSer->writeFormat("R", R);
+        pSer->writeFormat("t", t);
+        
+#endif
         float score = 0.0;
         Mat fdMat = findFundamentalMat(prepts,curpts,score);
         
@@ -224,8 +231,8 @@ namespace Monocular {
             realscale = Functions::ComputeDistance(preFrame->getPosition(), curFrame->getPosition());
         }
         
-        TargetItems &preItems = const_cast<Frame*>(preFrame)->getTargetItems();
-        TargetItems &curItems = const_cast<Frame*>(curFrame)->getTargetItems();
+        TargetItems &preItems = preFrame->getTargetItems();
+        TargetItems &curItems = curFrame->getTargetItems();
         
         for( TargetItem &target : preItems)
         {
@@ -233,14 +240,14 @@ namespace Monocular {
             float a;
             float b;
             float c;
-            
-            //计算极线
-            calcEpiline(fdMat, target._center, a, b, c);
-            
+
             if(!target.isValid())
             {//无效 则表示目标绝对坐标没有被恢复 或 计算的经纬度有误？
+
+                //计算极线
+                calcEpiline(fdMat, target._center, a, b, c);
                 Point2f corrPt = epilineSearch(curItems, target, a, b, c);
-                if(CHECKVALUE(corrPt))
+                if(CHECKVALUE(corrPt))// > 0  认为是有效值
                 {//找到同名点
                     Point3d output;
                     triangulation(target._center, corrPt, realscale, R, t, output);
@@ -249,6 +256,37 @@ namespace Monocular {
                     GeoPos pos = calcWorldPos(preFrame->getPosition(), curFrame->getPosition(), output,tcw);
                     
                     target._pos = pos;
+
+                    
+                    
+#if NEEDWRITEFILE
+                    pSer->prompt("target matching");
+                    pSer->writeFormat("targetID", target._id);
+                    pSer->writeFormat("first  center", target._center);
+                    pSer->writeFormat("second center", corrPt);
+                    
+                    pSer->prompt("epiline");
+                    pSer->writeFormat("a", a);
+                    pSer->writeFormat("b", b);
+                    pSer->writeFormat("c", c);
+                    
+                    pSer->writeFormat("calc Position", target._pos);
+                   
+#if  TESTOUTPUT
+                    target.a = a;
+                    target.b = b;
+                    target.c = c;
+                    
+                    if(CHECKVALUE(target._realpos))//真实值有效
+                    {
+                        pSer->writeFormat("real Position", target._realpos);
+                        pSer->writeFormat("distance(m)",Functions::ComputeDistance(target._pos, target._realpos));
+                    }
+#endif
+                   
+                    pSer->prompt("-----------------------------------------------");
+                    
+#endif
                     
                     return tcw;
                 }

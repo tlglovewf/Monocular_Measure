@@ -1,4 +1,4 @@
-﻿#include "Matcher.h"
+#include "Matcher.h"
 #include "Frame.h"
 #include <opencv2/video/tracking.hpp>
 namespace Monocular
@@ -43,11 +43,7 @@ namespace Monocular
             if(dist < min_dist)min_dist = dist;
             if(dist > max_dist)max_dist = dist;
         }
-        
-        //        std::cout << " mindist : " << min_dist << endl;
-        //        std::cout << " maxdist : " << max_dist << endl;
         assert(mPrePts.empty());
-        
         for(int i = 0; i < tmpmatches.size();++i)
         {
 #if 0
@@ -69,6 +65,22 @@ namespace Monocular
                 mCurPts.emplace_back( curkey[tmpmatches[i].trainIdx].pt);
             }
         }
+        
+//        Size winSize = Size( 5, 5 );
+//        Size zeroZone = Size( -1, -1 );
+//        TermCriteria criteria = TermCriteria(
+//                                             CV_TERMCRIT_EPS + CV_TERMCRIT_ITER,
+//                                             40,         //maxCount=40
+//                                             0.001 );    //epsilon=0.001
+//
+//
+        /// 计算亚像素级
+//          Mat tmp ;
+//        cvtColor(pPreFrame->getImg(), tmp, CV_BGR2GRAY);
+//        cornerSubPix( tmp, mPrePts, winSize, zeroZone, criteria );
+        
+//        cvtColor(pCurFrame->getImg(), tmp, CV_BGR2GRAY);
+//        cornerSubPix( tmp, mCurPts, winSize, zeroZone, criteria );
     }
     
     
@@ -82,18 +94,33 @@ namespace Monocular
     void  OpticalFlowMatcher::match(const Frame *pPreFrame,const Frame *pCurFrame)
     {
         //this function automatically gets rid of points for which tracking fails
-        
-        FloatVector err;
-        Size winSize = Size(21,21);
-        TermCriteria termcrit = TermCriteria(TermCriteria::COUNT+TermCriteria::EPS, 30, 0.01);
-
         assert(mPrePts.empty());
         
         std::vector<uchar> status;
-        KeyPoint::convert(pPreFrame->getKeyPoints(), mPrePts);
+//        KeyPoint::convert(pPreFrame->getKeyPoints(), mPrePts);
+
+        /*
+         * Shi-Tomasi算子
+         *
+         */
+        const Mat &preimg = pPreFrame->getImg();
         
-        calcOpticalFlowPyrLK(pPreFrame->getImg(), pCurFrame->getImg(), mPrePts, mCurPts, status, err, winSize, 3, termcrit, 0, 0.001);
+        int rows = (preimg.rows + preimg.cols) >> 2;
+        goodFeaturesToTrack(preimg, mPrePts, rows, 0.01, 10, Mat(),10,false);
+        /// 角点位置精准化参数
+        Size winSize = Size( 5, 5 );
+        Size flWinSize = Size(18,18);
+        Size zeroZone = Size( -1, -1 );
+        TermCriteria criteria = TermCriteria(
+                                             CV_TERMCRIT_EPS + CV_TERMCRIT_ITER,
+                                             40, //maxCount=40
+                                             0.001 );    //epsilon=0.001
+        FloatVector err;
+        TermCriteria termcrit = TermCriteria(TermCriteria::COUNT+TermCriteria::EPS, 30, 0.01);
+        /// 计算亚像素级
+        cornerSubPix( preimg, mPrePts, winSize, zeroZone, criteria );
         
+        calcOpticalFlowPyrLK(preimg, pCurFrame->getImg(), mPrePts, mCurPts, status, err, flWinSize, 3, termcrit, 0, 0.001);
         //getting rid of points for which the KLT tracking failed or those who have gone outside the frame
         int indexCorrection = 0;
         for( int i=0; i < status.size(); i++)

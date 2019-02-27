@@ -1,4 +1,4 @@
-﻿//
+//
 //  PoseEstimation.h
 //  Monocular_Measure
 //
@@ -12,6 +12,7 @@
 
 namespace Monocular {
     class Frame;
+    class Serialization;
     /*
      * 块匹配算法
      */
@@ -39,10 +40,12 @@ namespace Monocular {
          * @param curFrame      后帧
          * @param prepts        前帧中匹配对中的像素点集
          * @param curpts        后帧中匹配对中的像素点集
+         * @param pSer          序列化对象
          * @param scale         真实尺度(默认表示没有真实尺度,则计算两帧经纬度距离)
          * @return              世界变换矩阵
          */
-        Mat estimate(const Frame *preFrame,const Frame *curFrame,const PtVector &prepts,const PtVector &curpts,float realscale = -1.0);
+        Mat estimate( Frame *preFrame,Frame *curFrame,const PtVector &prepts,const PtVector &curpts,
+                      Serialization *pSer,float realscale = -1.0);
         
         /*
          * 基于基础矩阵的2d-2d状态恢复

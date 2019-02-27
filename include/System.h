@@ -1,4 +1,4 @@
-﻿//
+//
 //  System.h
 //  Monocular_Measure
 //
@@ -8,15 +8,19 @@
 #define __SYSTEM_H_H__
 #include "mtypes.h"
 #include <list>
+#include <string>
+#include "Serialization.h"
+
 namespace Monocular {
     class Tracking;
     class PoseEstimation;
     class Frame;
+    
     //跟踪模式
     enum eTrackingMode
     {
         eFeaturesMode,
-        OpticalFlowMode
+        eOpticalFlowMode
     };
     
     //系统控制类
@@ -26,7 +30,7 @@ namespace Monocular {
         /*
          * 构造函数
          */
-        System(const Camera &cam, eTrackingMode mode);
+        System(const Camera &cam, eTrackingMode mode,const std::string &outPath);
         /*
          * 析构函数
          */
@@ -60,6 +64,7 @@ namespace Monocular {
          * 输出结果
          */
         void printResult();
+        
     protected:
         /*
          * 加入到帧列表中
@@ -76,6 +81,10 @@ namespace Monocular {
         
         Tracking                        *mpTracker;
         PoseEstimation                  *mpEstimation;
+
+        //序列化对象
+        Serialization                   *mpSerialization;
+        
         FrameList                       mFrameList;
     };
 }
