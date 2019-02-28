@@ -60,6 +60,7 @@ namespace Monocular {
         
         for(size_t i = 0; i < cur.size();++i)
         {
+            circle(mImg, cur[i], 3, Scalar(255,255,255),FILLED);
             line(mImg, cur[i], oth[i], Scalar(0,0,0,3),2,LINE_AA);
         }
     }
