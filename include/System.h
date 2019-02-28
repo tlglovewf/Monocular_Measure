@@ -42,6 +42,11 @@ namespace Monocular {
         TargetItems objectDetect(const Mat &img,int sample);
         
         /*
+         *
+         */
+        TargetItems stereoObjDetect(const Mat &img);
+        
+        /*
          * 特征点追踪
          * @param 图像
          */

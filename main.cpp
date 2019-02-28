@@ -1,4 +1,4 @@
-﻿#include <iostream>
+#include <iostream>
 #include <System.h>
 using namespace std;
 
@@ -15,11 +15,16 @@ int main(void)
     cam.principal_point  =  Point2d( 2.0521093136805948e+03,1.0898609600712157e+03);//光心坐标
     cam.focal_length     =  1.8144486313396042e+03;                                 //焦距
     
-    Monocular::System sys(cam,Monocular::eOpticalFlowMode,std::string(SAVEPATH) +  std::string("/result.txt") );
+    Monocular::System sys(cam,Monocular::eFeaturesMode,std::string(SAVEPATH) +  std::string("/result.txt") );
     
     const size_t Len = 2;
+#if STEREO_TEST
+    Mat imgs[Len] = {imread("../../data/4015_L.jpg"),imread("../../data/4015_R.jpg")
+    };
+#else
     Mat imgs[Len] = {imread("../../data/4014.jpg"),imread("../../data/4015.jpg")
     };
+#endif
     Monocular::GeoPos geopts[Len] = { Monocular::GeoPos(114.40327060991, 30.60129500574),
                                       Monocular::GeoPos(114.40331230623, 30.60129672252)
     };
@@ -31,7 +36,7 @@ int main(void)
     cam.principal_point  =  Point2d( 2.0521093136805948e+03 ,1.0898609600712157e+03);//光心坐标
     cam.focal_length     =  1.8144486313396042e+03;                                 //焦距
     
-    Monocular::System sys(cam,Monocular::eFeaturesMode,std::string(SAVEPATH) +  std::string("/result.txt") );
+    Monocular::System sys(cam,Monocular::eOpticalFlowMode,std::string(SAVEPATH) +  std::string("/result.txt") );
     
     const size_t Len = 2;
  
@@ -43,8 +48,11 @@ int main(void)
 #endif
     for(size_t i = 0 ;  i < Len; ++i)
     {
+#if STEREO_TEST
+        Monocular::TargetItems items = sys.stereoObjDetect(imgs[i]);
+#else
         Monocular::TargetItems items = sys.objectDetect(imgs[i],TEST_SAMPLE);
-        
+#endif
         if(!items.empty())
         {//检测到目标
             //处理

@@ -25,6 +25,38 @@ namespace Monocular {
         return (rect.height > MINOBJECTSIZE) && (rect.width > MINOBJECTSIZE);
     }
     
+    
+    TargetItems System::stereoObjDetect(const cv::Mat &img)
+    {
+        static int index = 0;
+        TargetItems items;
+        const float sz = 50.0f;
+        if( index++ < 1)//left
+        {
+            Point2f pt(2806,827);
+            TargetItem item {0,pt,Rect2f(pt.x - sz,pt.y - sz,sz * 2,sz * 2)};
+#if TESTOUTPUT
+                item._realpos = GeoPos(114.40350395, 30.60123760);
+#endif
+            
+            if(checkRect(item._box))
+                items.emplace_back(item);
+            else
+                assert(NULL);
+        }
+        else//right
+        {
+            Point2f pt(2907,827);
+            TargetItem item{0,pt,Rect2f(pt.x - sz,pt.y - sz,sz * 2,sz * 2)};
+
+            if(checkRect(item._box))
+                items.emplace_back(item);
+            else
+                assert(NULL);
+        }
+        return items;
+    }
+    
     TargetItems System::objectDetect(const cv::Mat &img,int sample)
     {
         //add more ...
@@ -95,7 +127,11 @@ namespace Monocular {
                 PtVector prepts,curpts;
                 mpTracker->getMatchVector(prepts,curpts);
                 Frame *pPreFrame = mpTracker->getFrame(ePreFrame);
+#if STEREO_TEST
+                Mat tcw =  mpEstimation->estimate( pPreFrame, mpTracker->getFrame(eCurFrame), prepts, curpts,mpSerialization,1.0);
+#else
                 Mat tcw =  mpEstimation->estimate( pPreFrame, mpTracker->getFrame(eCurFrame), prepts, curpts,mpSerialization);
+#endif
                 pPreFrame->setWordTransform(std::move(tcw));
                 
                 //将有计算结果的帧添加到帧列表中
