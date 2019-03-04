@@ -43,18 +43,21 @@ namespace Monocular {
         
         Mat pt_4d;
         
+        //像素坐标转相机物理坐标
         Point2d dp1 = Functions::Pixel2Cam(pixel_1, mCamera.K);
         Point2d dp2 = Functions::Pixel2Cam(pixel_2, mCamera.K);
         
         TriangulationImpl impl =  &PoseEstimation::triangulationCvImpl;
         
+        //三角测量
         (this->*impl)(dp1,dp2,T1,T2,pt_4d);
         
         Mat x = pt_4d.col(0);
         
         x = x/x.at<double>(3,0);
         output = Point3d(x.at<double>(0,0),x.at<double>(1,0),x.at<double>(2,0));
-        
+
+        //尺度映射
         double d = scale / sqrt(t.at<double>(0,0) * t.at<double>(0,0)+
                                 t.at<double>(1,0) * t.at<double>(1,0)+
                                 t.at<double>(2,0) * t.at<double>(2,0));
@@ -187,11 +190,20 @@ namespace Monocular {
         
         Functions::Normalize(dir);
         
-        cv::Point3d zAixs = pt2 - pt1;       //行驶方向(相机拍摄方向）
-        Functions::Normalize(zAixs);         //单位化
-        cv::Point3d yAixs = pt1;             //up方向
-        Functions::Normalize(yAixs);         //单位化
-        tcw = Functions::ComputeWorldTransMatrix(zAixs, yAixs, pt1);//获取世界变换矩阵
+        cv::Point3d zAxis = pt2 - pt1;       //行驶方向(相机拍摄方向）
+        Functions::Normalize(zAxis);         //单位化
+        
+        cv::Point3d yAxis =  pt1;            //up方向
+        Functions::Normalize(yAxis);         //单位化
+        
+        cv::Point3d xAxis = zAxis.cross(yAxis);
+        Functions::Normalize(xAxis);
+        
+        yAxis = zAxis.cross(xAxis);
+        Functions::Normalize(yAxis);
+        yAxis = -yAxis;                       //y轴取反,因为相机y方向相反
+        
+        tcw = Functions::ComputeWorldTransMatrix(xAxis, yAxis,zAxis,pt1);//获取世界变换矩阵
         
         Mat pos = (Mat_<double>(4,1) << target.x,target.y,target.z,1) ;
         
@@ -200,7 +212,7 @@ namespace Monocular {
         cv::Point3d rstpt(rst.at<double>(0,0)/rst.at<double>(3,0),
                           rst.at<double>(1,0)/rst.at<double>(3,0),
                           rst.at<double>(2,0)/rst.at<double>(3,0));
-        
+    
        return Functions::ComputeGPSFromXYZ(rstpt);
     }
     
@@ -221,7 +233,6 @@ namespace Monocular {
         pSer->writeFormat("curFrame Position", curFrame->getPosition());
         pSer->writeFormat("R:", R);
         pSer->writeFormat("t:", t);
-        
 #endif
         float score = 0.0;
         Mat fdMat = findFundamentalMat(prepts,curpts,score);
@@ -259,13 +270,15 @@ namespace Monocular {
                 {//找到同名点
                     Point3d output;
                     triangulation(target._center, corrPt, realscale, R, t, output);
-                    output.y = -output.y;
+
                     Mat tcw;
                     GeoPos pos = calcWorldPos(preFrame->getPosition(), curFrame->getPosition(), output,tcw);
                     
                     target._pos = pos;
                     
 #if NEEDWRITEFILE
+                    pSer->writeFormat("calc pos", output);
+                    
                     pSer->prompt("target matching");
                     pSer->writeFormat("targetID", target._id);
                     pSer->writeFormat("first  center", target._center);
@@ -275,6 +288,8 @@ namespace Monocular {
                     pSer->writeFormat("a", a);
                     pSer->writeFormat("b", b);
                     pSer->writeFormat("c", c);
+                    
+                    pSer->writeFormat("relative length ", Functions::GetLength(output));;
                     
                     pSer->writeFormat("calc Position", target._pos);
                    

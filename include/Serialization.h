@@ -53,6 +53,13 @@ namespace Monocular {
         virtual void writeFormat(const std::string &prompt,const Point2f &pt) = 0;
         
         /*
+         * 格式化写值
+         * @param prompt 标签
+         * @param point  点
+         */
+        virtual void writeFormat(const std::string &prompt,const Point3d &pt) = 0;
+        
+        /*
          * 打印字符
          */
         virtual void prompt(const std::string &prompt) = 0;
@@ -66,6 +73,7 @@ namespace Monocular {
          * 路径
          */
         virtual std::string getPath()const = 0;
+        
     };
     
     //帧文件序列化对象
@@ -119,6 +127,13 @@ namespace Monocular {
         virtual void writeFormat(const std::string &prompt,const Point2f &pt);
         
         /*
+         * 格式化写值
+         * @param prompt 标签
+         * @param point  点
+         */
+        virtual void writeFormat(const std::string &prompt,const Point3d &pt) ;
+        
+        /*
          * 打印字符
          */
         virtual void prompt(const std::string &prompt);
@@ -135,6 +150,7 @@ namespace Monocular {
         {
             return mPath;
         }
+        
     protected:
         /*
          * 路径

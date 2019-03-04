@@ -1,4 +1,4 @@
-﻿//
+//
 //  Functions.h
 //  Monocular_Measure
 //
@@ -94,23 +94,21 @@ namespace Monocular {
         
         /**
          * 获取相机->世界 转换矩阵
-         * @param   zAxis eye direct  must normalize
-         * @param   yAxis up direct   must normalize
+         * @param   xAxis x   direct   must normalizee
+         * @param   zAxis eye direct   must normalize
+         * @param   yAxis up  direct   must normalize
          & @return  world transmatrix
          */
-        static cv::Mat ComputeWorldTransMatrix(const cv::Point3d &zAxis, const cv::Point3d &yAxis,const cv::Point3d &pt)
+        static cv::Mat ComputeWorldTransMatrix(const cv::Point3d &xAxis,
+                                               const cv::Point3d &yAxis,
+                                               const cv::Point3d &zAxis,
+                                               const cv::Point3d &pt)
         {
-            cv::Point3d xAxis =  zAxis.cross(yAxis);
-            
-            Normalize(xAxis);
-            
-            cv::Point3d uyAxis = zAxis.cross(xAxis);
-            
-            Normalize(uyAxis);
             //构建世界变换矩阵  相机 -> 世界
-            cv::Mat R = (cv::Mat_<double>(4,4) << xAxis.x , xAxis.y , xAxis.z ,pt.x,
-                         uyAxis.x, uyAxis.y, uyAxis.z,pt.y,
-                         zAxis.x ,zAxis.y , zAxis.z  ,pt.z,
+            cv::Mat R = (cv::Mat_<double>(4,4) <<
+                         xAxis.x , yAxis.x , zAxis.x  ,pt.x,
+                         xAxis.y , yAxis.y,  zAxis.y  ,pt.y,
+                         xAxis.z , yAxis.z , zAxis.z  ,pt.z,
                          0       ,0        ,0        ,1);
             return R;
         }

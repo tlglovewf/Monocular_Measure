@@ -1,4 +1,4 @@
-﻿//add more ...
+//add more ...
 #include "Serialization.h"
 #include "assert.h"
 #include "Frame.h"
@@ -73,7 +73,18 @@ namespace Monocular {
     void FileSerialization::writeFormat(const std::string &prompt,const Point2f &pt)
     {
         assert(is_open());
-        *this << std::left << std::setw(15) << prompt.c_str() << " : " << pt << std::endl;
+        *this << prompt.c_str() << " : " << pt << std::endl;
+    }
+    
+    /*
+     * 格式化写值
+     * @param prompt 标签
+     * @param point  点
+     */
+    void FileSerialization::writeFormat(const std::string &prompt,const Point3d &pt)
+    {
+        assert(is_open());
+        *this << prompt.c_str() << " : " << pt << std::endl;
     }
     
     void FileSerialization::serialize(const Monocular::Frame &f)

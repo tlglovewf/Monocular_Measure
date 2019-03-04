@@ -127,11 +127,9 @@ namespace Monocular {
                 PtVector prepts,curpts;
                 mpTracker->getMatchVector(prepts,curpts);
                 Frame *pPreFrame = mpTracker->getFrame(ePreFrame);
-#if STEREO_TEST
-                Mat tcw =  mpEstimation->estimate( pPreFrame, mpTracker->getFrame(eCurFrame), prepts, curpts,mpSerialization,1.0);
-#else
+
                 Mat tcw =  mpEstimation->estimate( pPreFrame, mpTracker->getFrame(eCurFrame), prepts, curpts,mpSerialization);
-#endif
+
                 pPreFrame->setWordTransform(std::move(tcw));
                 
                 //将有计算结果的帧添加到帧列表中

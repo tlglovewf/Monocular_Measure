@@ -21,7 +21,7 @@ namespace Monocular {
     
     #define TESTOUTPUT          1 //结果
     #define NEEDWRITEFILE       1 //允许输出到文件
-    #define STEREO_TEST         0 //双目数据测试
+
     
     #define NEEDPRINTDEBUGFINO _DEBUG        //是否打印输出信息
     
