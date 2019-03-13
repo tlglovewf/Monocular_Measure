@@ -26,9 +26,11 @@ namespace Monocular {
     void PoseEstimation::estimateF_2d2d(const PtVector &pt1, const PtVector &pt2, cv::Mat &R, cv::Mat &t)
     {
         //根据基础矩阵计算本质矩阵
-        Mat essential_matrix = findEssentialMat(pt1, pt2, mCamera.focal_length,mCamera.principal_point,RANSAC);
+        Mat mask;
+        Mat essential_matrix = findEssentialMat(pt1, pt2, mCamera.focal_length,mCamera.principal_point,RANSAC, 0.999, 1.0, mask);
+        
         //通过本质矩阵推算相机R 和 t
-        recoverPose( essential_matrix, pt1, pt2, R, t, mCamera.focal_length,mCamera.principal_point);
+        recoverPose( essential_matrix, pt1, pt2, R, t, mCamera.focal_length,mCamera.principal_point,mask);
     }
     
     void PoseEstimation::triangulation(const Point2f &pixel_1, const Point2f &pixel_2, float scale, const cv::Mat &R, const cv::Mat &t, Point3d &output)
@@ -90,7 +92,29 @@ namespace Monocular {
     Mat PoseEstimation::findFundamentalMat(const PtVector &pt1,const PtVector &pt2,float &score)
     {
         //此处暂时直接调用cv接口  并未对score进行计算 待后续优化
-        return cv::findFundamentalMat( pt1, pt2, CV_RANSAC);
+        
+        return cv::findFundamentalMat( pt1, pt2);
+        
+//        通过基础矩阵对结果进行筛选
+//        std::vector<uchar> status;
+//        Mat fm = cv::findFundamentalMat( pt1, pt2, CV_RANSAC,3,0.99,status);
+//        assert(status.size() == pt1.size());
+//        PtVector leftInlier;
+//        PtVector rightInlier;
+//
+//        int index = 0;
+//        for (unsigned i = 0; i < pt1.size(); i++) {
+//            if (status[i] != 0){
+//                leftInlier.push_back(pt1[i]);
+//                rightInlier.push_back(pt2[i]);
+//            }
+//        }
+//
+//        pt1.swap(leftInlier);
+//        pt2.swap(rightInlier);
+        
+//        return fm;
+        
     }
     
     void PoseEstimation::calcEpiline(const Mat &fdMat,const Point2f &piexl, float &a, float &b, float &c)
@@ -108,7 +132,7 @@ namespace Monocular {
     
      void PoseEstimation::calcEpiline(const PtVector &pt1, const PtVector &pt2,const PtVector &piexls, FloatVector &a, FloatVector &b, FloatVector &c)
     {
-        Mat fdmatrix = cv::findFundamentalMat( pt1, pt2, CV_FM_8POINT);
+        Mat fdmatrix = cv::findFundamentalMat( pt1, pt2);//, CV_FM_8POINT);
         
         std::vector<cv::Vec<float, 3>>  epilines;
         
@@ -166,6 +190,7 @@ namespace Monocular {
     TargetItem PoseEstimation::epilineSearch(const TargetItems &targets,const TargetItem &item,float a,float b, float c)
     {
         Point2f bg = item._center;
+        bg.y = computeY(item._center.x, a, b, c);
         Point2f ed(item._center.x + EPILINESEARCHLEN,0);
         ed.y = computeY(ed.x, a, b, c);
         for( TargetItem target : targets)
@@ -201,7 +226,7 @@ namespace Monocular {
         
         yAxis = zAxis.cross(xAxis);
         Functions::Normalize(yAxis);
-        yAxis = -yAxis;                       //y轴取反,因为相机y方向相反
+        yAxis = Point3d(0,1,0);// -yAxis;                       //y轴取反,因为相机y方向相反
         
         tcw = Functions::ComputeWorldTransMatrix(xAxis, yAxis,zAxis,pt1);//获取世界变换矩阵
         
@@ -216,10 +241,32 @@ namespace Monocular {
        return Functions::ComputeGPSFromXYZ(rstpt);
     }
     
+    void PoseEstimation::recover(Monocular::Frame *preFrame, Monocular::Frame *curFrame, const PtVector &prepts, const PtVector &curpts, cv::Mat &R, cv::Mat &t)
+    {
+        assert(preFrame);
+        assert(curFrame);
+        
+        float score = 0.0;
+        Mat fdMat = findFundamentalMat(prepts, curpts, score);
+        
+        //这里暂时直接用本质矩阵进行推导相机R t 后续看情况优化
+        estimateF_2d2d(prepts, curpts, R, t);
+    }
+    
     Mat PoseEstimation::estimate(Frame *preFrame,Frame *curFrame,const PtVector &prepts,const PtVector &curpts,Serialization *pSer,float realscale/* = -1.0*/)
     {
         assert(preFrame);
         assert(curFrame);
+        
+        
+        float score = 0.0;
+        
+        Mat fdMat = findFundamentalMat(prepts,curpts,score);
+
+        if(realscale < 0.0)
+        {//若尺度未输入 或 有误 取两帧经纬度距离
+            realscale = Functions::ComputeDistance(preFrame->getPosition(), curFrame->getPosition());
+        }
         
         Mat R,t;
         //这里暂时直接用本质矩阵进行推导相机R t 后续看情况优化
@@ -234,13 +281,6 @@ namespace Monocular {
         pSer->writeFormat("R:", R);
         pSer->writeFormat("t:", t);
 #endif
-        float score = 0.0;
-        Mat fdMat = findFundamentalMat(prepts,curpts,score);
-        
-        if(realscale < 0.0)
-        {//若尺度未输入 或 有误 取两帧经纬度距离
-            realscale = Functions::ComputeDistance(preFrame->getPosition(), curFrame->getPosition());
-        }
         
         TargetItems &preItems = preFrame->getTargetItems();
         TargetItems &curItems = curFrame->getTargetItems();
@@ -260,8 +300,15 @@ namespace Monocular {
                 
 #if TESTOUTPUT
                 const_cast<Frame*>(preFrame)->drawLine(a, b, c);
-                std::cout << "size :" << prepts.size() << std::endl;
+                
                 const_cast<Frame*>(preFrame)->drawMatch(prepts, curpts);
+                
+                Point2f bg = target._center;
+                bg.y = computeY(target._center.x, a, b, c);
+                Point2f ed(target._center.x + EPILINESEARCHLEN,0);
+                ed.y = computeY(ed.x, a, b, c);
+                
+                const_cast<Frame*>(preFrame)->drawLine(bg,ed);
 #endif
                 
                 TargetItem sm_target = epilineSearch(curItems, target, a, b, c);
@@ -270,7 +317,7 @@ namespace Monocular {
                 {//找到同名点
                     Point3d output;
                     triangulation(target._center, corrPt, realscale, R, t, output);
-
+                    if(output.z < 0 )output = -output;//add by tu. z<0 表示计算在车后 取反
                     Mat tcw;
                     GeoPos pos = calcWorldPos(preFrame->getPosition(), curFrame->getPosition(), output,tcw);
                     
@@ -278,6 +325,10 @@ namespace Monocular {
                     
 #if NEEDWRITEFILE
                     pSer->writeFormat("calc pos", output);
+                    
+                    float dt = Functions::ComputeDistance(target._realpos, preFrame->getPosition()) - Functions::GetLength(output);
+                    
+                    pSer->writeFormat("distance",dt);
                     
                     pSer->prompt("target matching");
                     pSer->writeFormat("targetID", target._id);

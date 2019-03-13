@@ -46,6 +46,9 @@ namespace Monocular {
          */
         Mat estimate( Frame *preFrame,Frame *curFrame,const PtVector &prepts,const PtVector &curpts,
                       Serialization *pSer,float realscale = -1.0);
+    
+        void recover(Frame *preFrame,Frame *curFrame,const PtVector &prepts,const PtVector &curpts,
+                     Mat &R, Mat &t);
         
         /*
          * 基于基础矩阵的2d-2d状态恢复

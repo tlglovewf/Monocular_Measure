@@ -1,4 +1,4 @@
-﻿//
+//
 //  Tracking.h
 //  Monocular_Measure
 //
@@ -44,7 +44,7 @@ namespace Monocular {
         /*
          * 抓取图像
          */
-        virtual bool grabImage(const Mat &img,const GeoPos &geopt,const TargetItems &items);
+        virtual bool grabImage(const Mat &img,const GeoPos &geopt,const TargetItems &items = TargetItems());
         
         /*
          * 重置

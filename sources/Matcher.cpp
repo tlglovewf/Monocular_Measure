@@ -25,16 +25,35 @@ namespace Monocular
         
     }
     
+    
+    void knn_match(const Mat &descriptor1,const Mat &descriptor2, const BFMatcher &match,MatchVector &matches)
+    {
+        const float minRatio = 1.f / 1.2f;
+        const int k = 2;
+        
+        std::vector<std::vector<DMatch> > knnMatches;
+        match.knnMatch(descriptor1, descriptor2, knnMatches, k);
+        
+        for (size_t i = 0; i < knnMatches.size(); i++) {
+            const DMatch& bestMatch = knnMatches[i][0];
+            const DMatch& betterMatch = knnMatches[i][1];
+            
+            float  distanceRatio = bestMatch.distance / betterMatch.distance;
+            if (distanceRatio < minRatio)
+                matches.push_back(bestMatch);
+        }
+    }
+    
+    
     void HammingDistanceMatcher::match(const Frame *pPreFrame,const Frame *pCurFrame)
     {
         assert(pPreFrame);
         assert(pCurFrame);
         
         const Mat &descriptorLeft = pPreFrame->getDescriptor();
-        const Mat &descriptRight = pCurFrame->getDescriptor();
+        const Mat &descriptorRight= pCurFrame->getDescriptor();
         MatchVector tmpmatches;
-        mMatcher.match(descriptorLeft, descriptRight, tmpmatches);
-        
+        mMatcher.match(descriptorLeft, descriptorRight, tmpmatches);
         double min_dist = 10000, max_dist = 0;
         
         for(size_t i = 0; i < descriptorLeft.rows;++i)
@@ -44,27 +63,53 @@ namespace Monocular
             if(dist > max_dist)max_dist = dist;
         }
         assert(mPrePts.empty());
+        
+        
+#if TESTOUTPUT
+        MatchVector goods;
+#endif
+        const KeyPointVector &prekey = pPreFrame->getKeyPoints();
+        const KeyPointVector &curkey = pCurFrame->getKeyPoints();
+#if 0
+        //效果不好 暂时舍弃
         for(int i = 0; i < tmpmatches.size();++i)
         {
-#if 0
-            const int sz = 10;
-            Rect2f rect(0,0,sz,sz);
-            if( (keypoints_1[tmpmatches[i].queryIdx].pt - keypoints_2[tmpmatches[i].trainIdx].pt).inside(rect))
-                continue;
-#else
-            //            Rect2f  rect(0,1600,4096,600);
-            //            if(keypoints_1[tmpmatches[i].queryIdx].pt.inside(rect) )
-            //                continue;
-            
-#endif
-            const KeyPointVector &prekey = pPreFrame->getKeyPoints();
-            const KeyPointVector &curkey = pCurFrame->getKeyPoints();
-            if( tmpmatches[i].distance <= max(2 * min_dist,30.0) )
+            if( tmpmatches[i].distance <=  0.3 * (max_dist + min_dist ))
             {
-                mPrePts.emplace_back( prekey[tmpmatches[i].queryIdx].pt);
-                mCurPts.emplace_back( curkey[tmpmatches[i].trainIdx].pt);
+                
+                Point2f prept = prekey[tmpmatches[i].queryIdx].pt;
+                Point2f curpt = curkey[tmpmatches[i].trainIdx].pt;
+                const int len = 30;//像素距离
+                if( fabs(curpt.x - prept.x) < len &&
+                    fabs(curpt.y - prept.y) < len)
+                {
+                    mPrePts.emplace_back(prept);
+                    mCurPts.emplace_back(curpt);
+#if TESTOUTPUT
+                    goods.emplace_back(tmpmatches[i]);
+#endif
+                }
             }
         }
+#else
+        
+        knn_match(descriptorLeft, descriptorRight, mMatcher, goods);
+
+        for(auto gd : goods)
+        {
+            mPrePts.emplace_back(prekey[gd.queryIdx].pt);
+            mCurPts.emplace_back(curkey[gd.trainIdx].pt);
+        }
+        
+#endif
+#if TESTOUTPUT  //保存特征匹配图片
+        Mat outimg;
+        drawMatches(pPreFrame->getImg(),  pPreFrame->getKeyPoints(), pCurFrame->getImg(), pCurFrame->getKeyPoints(), goods, outimg);
+         char outpath[1024] = {0};
+         sprintf(outpath, "%s/result_match.png",SAVEPATH);
+        imwrite(outpath, outimg);
+        std::cout << "matching pt size :" << mPrePts.size() << std::endl;
+#endif
     
     }
     
@@ -94,7 +139,7 @@ namespace Monocular
         }
         else
         {
-            int rows = (preimg.rows + preimg.cols) >> 2;
+            int rows = (preimg.rows + preimg.cols) >> 2 ;
             goodFeaturesToTrack(preimg, mPrePts, rows, 0.01, 10, Mat(),10,false);
         }
     

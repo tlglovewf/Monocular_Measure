@@ -49,7 +49,7 @@ namespace Monocular {
     
     void Frame::drawTargetItem(const TargetItem &item)
     {
-        rectangle(mImg,item._box,Scalar(0,0,0),3,LINE_AA);
+        rectangle(mImg,item._box,Scalar(255,0,0),3,LINE_AA);
         circle(mImg, item._center, 5, Scalar(0,0,255),FILLED);
     }
     
@@ -71,6 +71,11 @@ namespace Monocular {
         line(mImg, Point(0, y1), Point(mImg.cols, y2), Scalar(0,0,0),2,LINE_AA);
     }
     
+    void Frame::drawLine(const Point2f &bg,const Point2f &ed)
+    {
+        line(mImg, bg, ed,Scalar(255,255,255),2,LINE_AA);
+    }
+    
     void Frame::display()
     {
         if(!mImg.empty())
@@ -82,7 +87,7 @@ namespace Monocular {
             
             for( TargetItem item : mTargets)
             {
-                rectangle(outimg, item._box, Scalar(0,255,0),3);
+                rectangle(outimg, item._box, Scalar(0,0,255),3);
                 circle(outimg, item._center, 5, Scalar(0,0,255),FILLED);
                 
 #if TESTOUTPUT

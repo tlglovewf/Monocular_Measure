@@ -1,4 +1,4 @@
-﻿//
+//
 //  Tracking.cpp
 //  Monocular_Measure
 //
@@ -44,14 +44,15 @@ namespace Monocular {
         DESTROYOBJECT(mpFeatureDetector);
     }
     
-    bool Tracking::grabImage(const Mat &img,const GeoPos &geopt,const TargetItems &items)
+    bool Tracking::grabImage(const Mat &img,const GeoPos &geopt,const TargetItems &items /*= TargetItems()*/)
     {
         if(!img.empty())
         {
             if( eNo_Image_Yet == mState )
             {//没有需要跟踪的图片状态
                 mpCurrentFrame = Frame::CreateFrame(mFmType, img, geopt,mpFeatureDetector);
-                mpCurrentFrame->setTargetItems(items);
+                if(!items.empty())
+                    mpCurrentFrame->setTargetItems(items);
                 mState = eOk;
             }
             else
@@ -66,7 +67,8 @@ namespace Monocular {
                 mpPreFrame = mpCurrentFrame;//赋值前帧
                 
                 mpCurrentFrame = Frame::CreateFrame(mFmType, img, geopt,mpFeatureDetector);
-                mpCurrentFrame->setTargetItems(items);
+                if(!items.empty())
+                    mpCurrentFrame->setTargetItems(items);
             }
             return track();
         }

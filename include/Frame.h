@@ -107,6 +107,7 @@ namespace Monocular {
          * 绘制直线
          */
         void drawLine(float a,float b, float c);
+        void drawLine(const Point2f &bg, const Point2f &ed);
         
         /*
          * 绘制匹配线

@@ -15,7 +15,7 @@ namespace Monocular {
     class Tracking;
     class PoseEstimation;
     class Frame;
-    
+    class Viewer;
     //跟踪模式
     enum eTrackingMode
     {
@@ -31,6 +31,9 @@ namespace Monocular {
          * 构造函数
          */
         System(const Camera &cam, eTrackingMode mode,const std::string &outPath);
+        
+        System(const Camera &cam, eTrackingMode mode,Viewer *pViewer);
+        
         /*
          * 析构函数
          */
@@ -48,9 +51,19 @@ namespace Monocular {
         
         /*
          * 特征点追踪
-         * @param 图像
+         * @param img   图像
+         * @param geopt 坐标
+         * @param items 目标列表
          */
         void handle(const Mat &img,const GeoPos &geopt,const TargetItems &items);
+        
+        void handle(const Mat &img, const GeoPos &geopt);
+        
+        /*
+         * 跟踪轨迹
+         *
+         */
+        void track(const Mat &img, const GeoPos &geopt);
         
         /*
          * 状态重置
@@ -89,7 +102,7 @@ namespace Monocular {
 
         //序列化对象
         Serialization                   *mpSerialization;
-        
+        Viewer                          *mpViewer;
         FrameList                       mFrameList;
     };
 }

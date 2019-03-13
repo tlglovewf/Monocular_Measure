@@ -1,4 +1,4 @@
-﻿#include "FeatureDetector.h"
+#include "FeatureDetector.h"
 namespace Monocular {
     
     FeatureDetector* FeatureDetector::CreateDetector(Monocular::eFeatureDetectorType type)
@@ -15,7 +15,7 @@ namespace Monocular {
     
     ORBFeatureDetector::ORBFeatureDetector()
     {
-        mDetector = ORB::create(500, 2.0f, 8 ,31, 0, 2, ORB::HARRIS_SCORE,31,20);
+        mDetector = ORB::create(2000, 1.2f, 8 ,31, 0, 4, ORB::HARRIS_SCORE,31,20);
     }
     
     ORBFeatureDetector::~ORBFeatureDetector()
