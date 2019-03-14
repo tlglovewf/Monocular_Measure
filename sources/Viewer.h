@@ -88,6 +88,7 @@ namespace Monocular {
         Mat     mIndicatorR;
         Mat     mIndicatorT;
         Mat     mCurImg;
+        Point3d mTarget;
     };
 }
 

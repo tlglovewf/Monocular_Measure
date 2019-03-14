@@ -151,8 +151,14 @@ namespace Monocular {
             }
             else
             {
-                mpViewer->setCurrentPose(pPreFrame->getImg(),R, t, 4.0);
+                mpViewer->setCurrentPose(pPreFrame->getImg(),R, t, 2.0);
             }
+            
+            Point3d output( 9.5189766055356823671, -3.1329512913535175755, 24.565221744688841454);
+            
+            output = output / 2.0;
+                           
+            mpViewer->setTargetPose(output);
             
             mpViewer->render();
         }

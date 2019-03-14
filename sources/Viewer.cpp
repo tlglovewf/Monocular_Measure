@@ -10,8 +10,9 @@
 namespace Monocular {
     
     
-#define WIN_SIZE      1000
-#define HALF_WIN_SIZE 500
+#define WIN_SIZE      600
+#define HALF_WIN_SIZE 300
+#define BOTTOM_POS    (WIN_SIZE - 100)
     DefaultViewer::DefaultViewer()
     {
         mCanvas = Mat::zeros(WIN_SIZE, WIN_SIZE, CV_8UC3);
@@ -22,13 +23,20 @@ namespace Monocular {
         
     }
     
-    void merge(const Mat &first, const Mat &second,Mat &out)
+    void Parallel_Pic(const Mat &first, const Mat &second,Mat &out)
     {
-        out = Mat(max(first.rows,second.rows),first.cols + second.cols,first.type());
+#if 1
+        out = Mat( max(first.rows,second.rows) ,first.cols + second.cols,first.type());
         
-        first.colRange(0, first.cols).copyTo(out.colRange(0, first.cols));
+        first.copyTo(out(Rect(0,0,first.cols,first.rows)));
+        second.copyTo(out(Rect(first.cols,0,second.cols,second.rows)));
+#else
+        out = Mat(first.rows + second.rows,max(first.cols,second.cols),first.type());
         
-        second.colRange(0, second.cols).copyTo(out.colRange(first.cols, out.cols));
+        first.copyTo(out(Rect(0,0,first.cols,first.rows)));
+        second.copyTo(out(Rect(first.cols,0,second.cols,second.rows)));
+
+#endif
     }
     
     void DefaultViewer::render()
@@ -43,17 +51,20 @@ namespace Monocular {
         putText(mCanvas, text, textOrg, fontFace, fontScale, Scalar::all(255), thickness, 8);
         
         int x = int(mIndicatorT.at<double>(0)) + HALF_WIN_SIZE;
-        int y = int(mIndicatorT.at<double>(2)) + HALF_WIN_SIZE ;
+        int y = int(mIndicatorT.at<double>(2)) + BOTTOM_POS   ;
         circle(mCanvas, Point(x, y) ,1, CV_RGB(255,0,0), 2);//红色计算轨迹
         
-//        imshow("traj", mCanvas);
+        x = x + mTarget.x;
+        y = y - mTarget.z;
         
-        resize(mCurImg, mCurImg, Size(mCurImg.cols >> 2,mCurImg.rows >> 2));
+        circle(mCanvas, Point(x, y) ,1, CV_RGB(0,255,0), 2);//红色计算轨迹
+        
+        resize(mCurImg, mCurImg, Size(mCanvas.rows,mCanvas.cols));
         
         Mat out;
-        merge(mCanvas,mCurImg);
         
-//        imshow("img", mCurImg);
+        Parallel_Pic(mCanvas,mCurImg,out);
+        
         imshow("mg", out);
         
         
@@ -69,6 +80,13 @@ namespace Monocular {
     
     void DefaultViewer::setTargetPose(const Point3d &pt)
     {
-        
+        mTarget = pt;
+        Mat temp = (Mat_<double>(3,1) << pt.z,pt.y,pt.x);
+//
+        temp = mIndicatorR * temp;
+        double x = temp.at<double>(0,0);
+        double y = temp.at<double>(0,1);
+        double z = temp.at<double>(0,2);
+        mTarget = Point3d( x / z,y / z,0);
     }
 }
