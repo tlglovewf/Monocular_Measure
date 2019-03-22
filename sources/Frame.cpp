@@ -115,12 +115,14 @@ namespace Monocular {
     {
         assert(NULL != pDetector);
         pDetector->addRef();
-        
+        TimeInterval t;
+        t.start();
         //提取特征点 并计算描述子
         pDetector->detect(mImg, mKeyPoints);
         pDetector->compute(mImg, mKeyPoints, mDescriptor);
         
         pDetector->release();
+        t.print("create frame");
     }
   
     FeatureFrame::~FeatureFrame()
@@ -130,6 +132,8 @@ namespace Monocular {
     
     OpticalFlowFrame::OpticalFlowFrame(const Mat &img,const GeoPos &pt,FeatureDetector *pDetector):Frame(img,pt)
     {
+        TimeInterval t;
+        t.start();
         cvtColor(img, mImg, CV_BGR2GRAY);
         
 //        assert(NULL != pDetector);
@@ -138,6 +142,7 @@ namespace Monocular {
 //        pDetector->detect(mImg, mKeyPoints);
 //        
 //        pDetector->release();
+        t.print("create frame");
     }
     
 }

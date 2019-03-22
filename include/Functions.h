@@ -8,6 +8,7 @@
 #define __FUNCTIONS_H_H_
 #include <cmath>
 #include "mtypes.h"
+#include "ctime"
 namespace Monocular {
     const double PI64        = 3.1415926535897932384626433832795028841971693993751;
     const double Half_PI64   = 1.5707963267948965579989817342720925807952880859375;
@@ -338,6 +339,23 @@ namespace Monocular {
             b = b * 180 / PI64;
             return GeoPos(l, b);//, XYZ.Z);
         }
+    };
+    
+    class TimeInterval
+    {
+    public:
+        void start()
+        {
+            _start = clock();
+        }
+        
+        void print(const std::string &str)
+        {
+//            time_t dt = clock() - _start;
+//            std::cout << str.c_str() << " spend : " << dt/(float)CLOCKS_PER_SEC << "s" << std::endl;
+        }
+    protected:
+        time_t _start;
     };
 }
 #endif /*__FUNCTIONS_H_H_*/

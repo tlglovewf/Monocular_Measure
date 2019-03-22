@@ -2,6 +2,7 @@
 #include <System.h>
 #include <ctime>
 #include "Viewer.h"
+#include "Functions.h"
 #if defined(_WIN32) | defined(_WIN64)
 #include <io.h>
 #else
@@ -10,7 +11,7 @@
 #include <string.h>
 using namespace std;
 
-#define  TEST_SAMPLE     1 //定位测试例子
+#define  TEST_SAMPLE     0 //定位测试例子
 
 
 #define  TEST_TRAJECTORY 1 // 测试轨迹
@@ -64,7 +65,7 @@ void measureTest()
     cam.principal_point  =  Point2d( 2.0521093136805948e+03 ,1.0898609600712157e+03);//光心坐标
     cam.focal_length     =  1.8144486313396042e+03;                                 //焦距
     
-    Monocular::System sys(cam,Monocular::eOpticalFlowMode,std::string(SAVEPATH) +  std::string("/result.txt") );
+    Monocular::System sys(cam,Monocular::eFeaturesMode,std::string(SAVEPATH) +  std::string("/result.txt") );
     
     const size_t Len = 2;
     
@@ -159,22 +160,7 @@ int loadFiles( const std::string &dirpath, std::vector<std::string> &files )
 #endif
 
 
-class TimeInterval
-{
-public:
-    void start()
-    {
-        _start = clock();
-    }
-    
-    void print()
-    {
-        time_t dt = clock() - _start;
-        cout << "spend : " << dt/(float)CLOCKS_PER_SEC << "s" << endl;
-    }
-protected:
-    time_t _start;
-};
+
 
 void trackTest()
 {
@@ -200,7 +186,7 @@ void trackTest()
     
     Monocular::System sys(cam,Monocular::eFeaturesMode,pViewer );
     
-    TimeInterval timeClac;
+    Monocular::TimeInterval timeClac;
    
     for(int i = 0;i < fileSize ;++i)
     {
@@ -210,7 +196,7 @@ void trackTest()
         assert(!img.empty());
         Monocular::GeoPos pos;
         sys.handle(img, pos);
-        timeClac.print();
+        timeClac.print("total");
     }
     waitKey(0);
 }

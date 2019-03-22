@@ -54,16 +54,26 @@ namespace Monocular {
         int y = int(mIndicatorT.at<double>(2)) + BOTTOM_POS   ;
         circle(mCanvas, Point(x, y) ,1, CV_RGB(255,0,0), 2);//红色计算轨迹
         
-        x = x + mTarget.x;
-        y = y - mTarget.z;
-        
-        circle(mCanvas, Point(x, y) ,1, CV_RGB(0,255,0), 2);//红色计算轨迹
+//        x = x + mTarget.x;
+//        y = y - mTarget.z;
+//
+//        circle(mCanvas, Point(x, y) ,1, CV_RGB(0,255,0), 2);//红色计算轨迹
         
         resize(mCurImg, mCurImg, Size(mCanvas.rows,mCanvas.cols));
         
         Mat out;
         
-        Parallel_Pic(mCanvas,mCurImg,out);
+        if(mCurImg.channels()<3)
+        {
+            Mat grayCanvas;
+            cvtColor(mCanvas, grayCanvas, CV_BGR2GRAY);
+            
+            Parallel_Pic(grayCanvas,mCurImg,out);
+        }
+        else
+        {
+            Parallel_Pic(mCanvas,mCurImg,out);
+        }
         
         imshow("mg", out);
         
@@ -80,13 +90,13 @@ namespace Monocular {
     
     void DefaultViewer::setTargetPose(const Point3d &pt)
     {
-        mTarget = pt;
-        Mat temp = (Mat_<double>(3,1) << pt.z,pt.y,pt.x);
-//
-        temp = mIndicatorR * temp;
-        double x = temp.at<double>(0,0);
-        double y = temp.at<double>(0,1);
-        double z = temp.at<double>(0,2);
-        mTarget = Point3d( x / z,y / z,0);
+//        mTarget = pt;
+//        Mat temp = (Mat_<double>(3,1) << pt.z,pt.y,pt.x);
+////
+//        temp = mIndicatorR * temp;
+//        double x = temp.at<double>(0,0);
+//        double y = temp.at<double>(0,1);
+//        double z = temp.at<double>(0,2);
+//        mTarget = Point3d( x / z,y / z,0);
     }
 }

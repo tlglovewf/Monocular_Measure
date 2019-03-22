@@ -226,17 +226,30 @@ namespace Monocular {
         
         yAxis = zAxis.cross(xAxis);
         Functions::Normalize(yAxis);
-        yAxis = Point3d(0,1,0);// -yAxis;                       //y轴取反,因为相机y方向相反
+        
+#if  0
+        yAxis = -yAxis;                       //y轴取反,因为相机y方向相反
         
         tcw = Functions::ComputeWorldTransMatrix(xAxis, yAxis,zAxis,pt1);//获取世界变换矩阵
-        
+
         Mat pos = (Mat_<double>(4,1) << target.x,target.y,target.z,1) ;
+        
+        
+        
         
         Mat rst = tcw * pos;
         
         cv::Point3d rstpt(rst.at<double>(0,0)/rst.at<double>(3,0),
                           rst.at<double>(1,0)/rst.at<double>(3,0),
                           rst.at<double>(2,0)/rst.at<double>(3,0));
+#else
+        Point3d rstpt;
+        
+        rstpt = pt1 + zAxis * target.z;
+        rstpt = rstpt + xAxis * target.x;
+        
+        
+#endif
     
        return Functions::ComputeGPSFromXYZ(rstpt);
     }
@@ -258,7 +271,7 @@ namespace Monocular {
         assert(preFrame);
         assert(curFrame);
         
-        
+        TimeInterval ti;
         float score = 0.0;
         
         Mat fdMat = findFundamentalMat(prepts,curpts,score);
@@ -326,10 +339,11 @@ namespace Monocular {
 #if NEEDWRITEFILE
                     pSer->writeFormat("calc pos", output);
                     
+#if TESTOUTPUT
                     float dt = Functions::ComputeDistance(target._realpos, preFrame->getPosition()) - Functions::GetLength(output);
-                    
+
                     pSer->writeFormat("distance",dt);
-                    
+#endif
                     pSer->prompt("target matching");
                     pSer->writeFormat("targetID", target._id);
                     pSer->writeFormat("first  center", target._center);
@@ -361,6 +375,8 @@ namespace Monocular {
                     pSer->prompt("-----------------------------------------------");
                     
 #endif
+                    
+                    ti.print("estimation");
                     
                     return tcw;
                 }
